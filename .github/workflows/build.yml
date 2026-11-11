@@ -6,12 +6,21 @@ on:
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish a release (creates the tag v<version> and uploads the packages)"
+        type: boolean
+        default: false
+      version:
+        description: "Release version, without the v"
+        type: string
+        default: "1.0.0"
 
 permissions:
   contents: read
 
 concurrency:
-  group: build-${{ github.ref }}
+  group: build-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:
@@ -77,10 +86,14 @@ jobs:
 
       - name: Package
         shell: bash
+        env:
+          INPUT_PUBLISH: ${{ inputs.publish }}
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          version="${GITHUB_REF_NAME#v}"
-          [[ "$GITHUB_REF_TYPE" == "tag" ]] || version="dev"
+          version="dev"
+          [[ "$GITHUB_REF_TYPE" == "tag" ]] && version="${GITHUB_REF_NAME#v}"
+          [[ "$INPUT_PUBLISH" == "true" ]] && version="$INPUT_VERSION"
           art=build/InYourPhase_artefacts/Release
           out="InYourPhase-$version-${{ matrix.package }}"
           mkdir -p "dist/$out"
@@ -123,7 +136,7 @@ jobs:
           path: dist/*.zip
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || inputs.publish
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -139,7 +152,9 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
-          name: In Your Phase ${{ github.ref_name }}
+          tag_name: ${{ inputs.publish && format('v{0}', inputs.version) || github.ref_name }}
+          target_commitish: ${{ github.sha }}
+          name: In Your Phase ${{ inputs.publish && format('v{0}', inputs.version) || github.ref_name }}
           generate_release_notes: true
           files: |
             dist/*.zip

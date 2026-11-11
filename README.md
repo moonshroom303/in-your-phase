@@ -66,7 +66,7 @@ cmake --build build --config Release
 - On Linux, install the JUCE dependencies first, for example on Ubuntu: `libasound2-dev libfreetype-dev libfontconfig1-dev libx11-dev libxcomposite-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libgl1-mesa-dev`.
 - On a Mac, `InYourPhase-bauen.command` does everything in one double-click, including `auval`.
 
-`.github/workflows/build.yml` builds and tests all three platforms on every push. Pushing a tag `v*` publishes a release with the packages and SHA-256 checksums.
+`.github/workflows/build.yml` builds and tests all three platforms on every push. Pushing a tag `v*` publishes a release with the packages and SHA-256 checksums. Alternatively, run the **Build** workflow manually (Actions → Build → Run workflow) with *publish* ticked and a version number: it creates the tag and the release.
 
 ## License
 

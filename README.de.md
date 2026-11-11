@@ -111,7 +111,7 @@ cmake --build build --config Release
 
 JUCE 8.0.15 wird beim ersten Konfigurieren automatisch geladen. Ein vorhandenes JUCE lässt sich mit `-DJUCE_DIR=/pfad/zu/JUCE` nutzen. `-DLP_COPY_PLUGINS=OFF` verhindert das Kopieren in die Plugin-Ordner.
 
-`.github/workflows/build.yml` baut alle Plattformen. Ein Tag `v*` erstellt automatisch ein Release mit den Paketen und SHA-256-Prüfsummen.
+`.github/workflows/build.yml` baut alle Plattformen. Ein Tag `v*` erstellt automatisch ein Release mit den Paketen und SHA-256-Prüfsummen. Alternativ den Workflow **Build** von Hand starten (Actions → Build → Run workflow), *publish* anhaken und eine Version eintragen: Er legt Tag und Release selbst an.
 
 ## Lizenz
 
