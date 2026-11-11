@@ -1,0 +1,9 @@
+build*/
+cmake-build*/
+.werkzeuge/
+JUCE/
+.DS_Store
+*.user
+.vs/
+.vscode/
+.idea/

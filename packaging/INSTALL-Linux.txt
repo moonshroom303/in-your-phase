@@ -1,0 +1,15 @@
+In Your Phase — Linux (x86-64)
+
+VST3:        copy "In Your Phase.vst3" to ~/.vst3/
+LV2:         copy "In Your Phase.lv2"  to ~/.lv2/
+Standalone:  run "./In Your Phase" (needs ALSA)
+
+Then rescan plug-ins in your DAW. In Your Phase is listed under "moonshroom studio".
+
+---
+
+Deutsch: "In Your Phase.vst3" nach ~/.vst3/ und "In Your Phase.lv2" nach ~/.lv2/
+kopieren, die App direkt starten. Danach in der DAW die Plugins neu scannen.
+
+In Your Phase is free software under the GNU AGPL v3, see LICENSE.txt.
+Source: https://github.com/moonshroom303/in-your-phase

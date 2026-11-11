@@ -1,0 +1,18 @@
+In Your Phase — Windows (64-bit)
+
+VST3:        copy the folder "In Your Phase.vst3" to C:\Program Files\Common Files\VST3\
+Standalone:  "In Your Phase.exe" runs from any folder.
+
+Windows SmartScreen may warn because the files are not code-signed:
+choose "More info" -> "Run anyway".
+
+Then rescan plug-ins in your DAW. In Your Phase is listed under "moonshroom studio".
+
+---
+
+Deutsch: Den Ordner "In Your Phase.vst3" nach C:\Program Files\Common Files\VST3\
+kopieren. Die .exe läuft aus jedem Ordner. Warnt SmartScreen, "Weitere Informationen"
+und "Trotzdem ausführen" wählen. Danach in der DAW die Plugins neu scannen.
+
+In Your Phase is free software under the GNU AGPL v3, see LICENSE.txt.
+Source: https://github.com/moonshroom303/in-your-phase

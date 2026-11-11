@@ -1,0 +1,142 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS
+            os: macos-14
+            package: macOS-universal
+          - name: Windows
+            os: windows-latest
+            package: Windows-x64
+          - name: Linux
+            os: ubuntu-22.04
+            package: Linux-x64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libasound2-dev libfreetype-dev libfontconfig1-dev \
+            libx11-dev libxcomposite-dev libxcursor-dev libxext-dev libxinerama-dev \
+            libxrandr-dev libxrender-dev libgl1-mesa-dev
+
+      - name: Cache JUCE
+        uses: actions/cache@v4
+        with:
+          path: build/_deps/juce-src
+          key: juce-8.0.15-${{ runner.os }}
+
+      - name: Configure (macOS)
+        if: runner.os == 'macOS'
+        run: >
+          cmake -S . -B build -G Xcode
+          -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+          -DLP_COPY_PLUGINS=OFF
+
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DLP_COPY_PLUGINS=OFF
+
+      - name: Configure (Linux)
+        if: runner.os == 'Linux'
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DLP_COPY_PLUGINS=OFF
+
+      - name: Build
+        run: cmake --build build --config Release --parallel 4
+
+      - name: Tests
+        shell: bash
+        run: |
+          exe=$(find build/InYourPhaseTests_artefacts -type f \( -name InYourPhaseTests -o -name InYourPhaseTests.exe \) | head -1)
+          echo "Running $exe"
+          "$exe"
+
+      - name: Package
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          [[ "$GITHUB_REF_TYPE" == "tag" ]] || version="dev"
+          art=build/InYourPhase_artefacts/Release
+          out="InYourPhase-$version-${{ matrix.package }}"
+          mkdir -p "dist/$out"
+          cp -R "$art"/VST3/*.vst3 "dist/$out/"
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            cp -R "$art"/AU/*.component "dist/$out/"
+            cp -R "$art"/Standalone/*.app "dist/$out/"
+            for b in "dist/$out"/*.vst3 "dist/$out"/*.component "dist/$out"/*.app; do
+              codesign --force --deep --sign - "$b"
+            done
+          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+            cp "$art"/Standalone/*.exe "dist/$out/"
+          else
+            cp -R "$art"/LV2/*.lv2 "dist/$out/"
+            cp "$art"/Standalone/* "dist/$out/"
+          fi
+          cp LICENSE "dist/$out/LICENSE.txt"
+          cp packaging/INSTALL-${{ runner.os }}.txt "dist/$out/INSTALL.txt"
+          cd dist
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            7z a -tzip "$out.zip" "$out" > /dev/null
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            ditto -c -k --keepParent "$out" "$out.zip"
+          else
+            zip -qry "$out.zip" "$out"
+          fi
+          ls -la
+
+      - name: Validate Audio Unit
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p ~/Library/Audio/Plug-Ins/Components
+          cp -R "dist/"*/*.component ~/Library/Audio/Plug-Ins/Components/
+          killall -9 AudioComponentRegistrar 2>/dev/null || true
+          auval -v aufx Iyp1 Mnsh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.package }}
+          path: dist/*.zip
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Checksums
+        run: cd dist && sha256sum *.zip > SHA256SUMS.txt && cat SHA256SUMS.txt
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: In Your Phase ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            dist/*.zip
+            dist/SHA256SUMS.txt

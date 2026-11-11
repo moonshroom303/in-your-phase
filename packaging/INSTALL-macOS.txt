@@ -1,0 +1,24 @@
+In Your Phase — macOS (Apple Silicon and Intel, macOS 11 or newer)
+
+Audio Unit:  copy "In Your Phase.component" to ~/Library/Audio/Plug-Ins/Components/
+VST3:        copy "In Your Phase.vst3"      to ~/Library/Audio/Plug-Ins/VST3/
+Standalone:  copy "In Your Phase.app"       to Applications
+
+The builds are ad-hoc signed, not notarized. If macOS blocks them after
+downloading, remove the quarantine flag once in Terminal:
+
+  xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/Components/"In Your Phase.component"
+  xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/"In Your Phase.vst3"
+  xattr -dr com.apple.quarantine /Applications/"In Your Phase.app"
+
+Then rescan plug-ins in your DAW. In Your Phase is listed under "moonshroom studio".
+
+---
+
+Deutsch: Die .component nach ~/Library/Audio/Plug-Ins/Components/, die .vst3 nach
+~/Library/Audio/Plug-Ins/VST3/, die App in den Programme-Ordner kopieren. Blockiert
+macOS die Dateien nach dem Download, die Befehle oben einmal im Terminal ausführen.
+Danach in der DAW die Plugins neu scannen.
+
+In Your Phase is free software under the GNU AGPL v3, see LICENSE.txt.
+Source: https://github.com/moonshroom303/in-your-phase
